@@ -46,12 +46,16 @@ var DEFAULT_SETTINGS = {
     onAdd: null,
     onDelete: null,
     onReady: null,
+    beforeAdd: null,
 
     // Other settings
     idPrefix: "token-input-",
 
     // Keep track if the input is currently in disabled mode
-    disabled: false
+    disabled: false,
+
+    // Add manually
+    addManually: false
 };
 
 // Default classes to use when theming
@@ -66,7 +70,8 @@ var DEFAULT_CLASSES = {
     dropdownItem2: "token-input-dropdown-item2",
     selectedDropdownItem: "token-input-selected-dropdown-item",
     inputToken: "token-input-input-token",
-    disabled: "token-input-disabled"
+    disabled: "token-input-disabled",
+    noResults: "token-input-no-results"
 };
 
 // Input box position "enum"
@@ -276,7 +281,11 @@ $.TokenList = function (input, url_or_data, settings) {
                 case KEY.ENTER:
                 case KEY.NUMPAD_ENTER:
                 case KEY.COMMA:
-                  if(selected_dropdown_item) {
+                  if(selected_dropdown_item && settings.addManually) {
+                    before_add_token($(selected_dropdown_item).data("tokeninput"));
+                    hidden_input.change();
+                    return false;
+                  }else{
                     add_token($(selected_dropdown_item).data("tokeninput"));
                     hidden_input.change();
                     return false;
@@ -521,6 +530,15 @@ $.TokenList = function (input, url_or_data, settings) {
         return this_token;
     }
 
+    function before_add_token (item) {
+        var callback = settings.beforeAdd;
+
+        // Execute the beforeAdd callback if defined
+        if($.isFunction(callback)) {
+            callback.call(hidden_input,item);
+        }
+    }
+
     // Add a token to the token list based on user input
     function add_token (item) {
         var callback = settings.onAdd;
@@ -705,20 +723,24 @@ $.TokenList = function (input, url_or_data, settings) {
 
     // Populate the results dropdown with some results
     function populate_dropdown (query, results) {
-        if(results && results.length) {
-            dropdown.empty();
-            var dropdown_ul = $("<ul>")
-                .appendTo(dropdown)
-                .mouseover(function (event) {
-                    select_dropdown_item($(event.target).closest("li"));
-                })
-                .mousedown(function (event) {
-                    add_token($(event.target).closest("li").data("tokeninput"));
-                    hidden_input.change();
-                    return false;
-                })
-                .hide();
+        dropdown.empty();
+        var dropdown_ul = $("<ul>")
+            .appendTo(dropdown)
+            .mouseover(function (event) {
+                select_dropdown_item($(event.target).closest("li"));
+            })
+            .mousedown(function (event) {
+                if(settings.addManually) {
+                    before_add_token($(event.target).closest("li").data("tokeninput"));
+                }else{
+                    add_token($(event.target).closest("li").data("tokeninput"));                    
+                }
+                hidden_input.change();
+                return false;
+            })
+            .hide();
 
+        if(results && results.length) {
             $.each(results, function(index, value) {
                 var this_li = settings.resultsFormatter(value);
 
@@ -738,19 +760,19 @@ $.TokenList = function (input, url_or_data, settings) {
 
                 $.data(this_li.get(0), "tokeninput", value);
             });
-
-            show_dropdown();
-
-            if(settings.animateDropdown) {
-                dropdown_ul.slideDown("fast");
-            } else {
-                dropdown_ul.show();
-            }
         } else {
-            if(settings.noResultsText) {
-                dropdown.html("<p>"+settings.noResultsText+"</p>");
-                show_dropdown();
-            }
+            var this_li = "<li>" + settings.noResultsText + "</li>"
+            this_li = $(this_li).appendTo(dropdown_ul);
+            this_li.addClass(settings.classes.noResults);
+            select_dropdown_item(this_li);
+            var value = {id: null, name: input_box.val()};
+            $.data(this_li.get(0), "tokeninput", value);
+        }
+        show_dropdown();
+        if(settings.animateDropdown) {
+            dropdown_ul.slideDown("fast");
+        } else {
+            dropdown_ul.show();
         }
     }
 

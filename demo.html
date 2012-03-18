@@ -477,7 +477,7 @@
                 {id: 43, name: "C++"},
                 {id: 47, name: "Java"}
             ], {
-                disabled: true,
+                // disabled: true,
                 prePopulate: [
                     {id: 123, name: "Slurms MacKenzie"},
                     {id: 555, name: "Bob Hoskins"},
@@ -488,5 +488,41 @@
         </script>
     </div>
 
+
+    <h2>Add Manually</h2>
+    <div>
+        <input type="text" id="demo-input-add-manually" name="blah" />
+        <input type="button" value="Submit" />
+        <script type="text/javascript">
+        $(document).ready(function() {
+            $("#demo-input-add-manually").tokenInput([
+                {id: 7, name: "Ruby"},
+                {id: 11, name: "Python"},
+                {id: 13, name: "JavaScript"},
+                {id: 17, name: "ActionScript"},
+                {id: 19, name: "Scheme"},
+                {id: 23, name: "Lisp"},
+                {id: 29, name: "C#"},
+                {id: 31, name: "Fortran"},
+                {id: 37, name: "Visual Basic"},
+                {id: 41, name: "C"},
+                {id: 43, name: "C++"},
+                {id: 47, name: "Java"}
+            ], {
+                prePopulate: [
+                    {id: 123, name: "Slurms MacKenzie"},
+                    {id: 555, name: "Bob Hoskins"},
+                    {id: 9000, name: "Kriss Akabusi"}
+                ],
+                addManually: true,
+                beforeAdd: function (item) {
+                    console.log(item);
+                    alert("Please add manually. " + item);
+                },
+                noResultsText: "No results. Enter or click here to add the list.",
+            });
+        });
+        </script>
+    </div>
 </body>
 </html>
